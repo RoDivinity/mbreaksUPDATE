@@ -1,4 +1,2 @@
-# mbreaksUPDATE
-
-This repo is for uploading/testing new updates of mbreaks package on CRAN. 
-
+# mbreaks
+Update structural break library in R

@@ -1,0 +1,87 @@
+---
+title: "Estimating and testing for multiple structural changes with `mbreaks` package"
+author: "Linh Nguyen, Pierre Perron, Yohei Yamamoto"
+output: rmarkdown::html_vignette
+description: |
+  Estimate and test for structural changes using linear regression models with customized assumptions on data distribution 
+vignette: >
+  %\VignetteIndexEntry{Estimating and testing for multiple structural changes with `mbreaks` package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: references.bib 
+csl: journal-of-econometrics.csl
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "")
+install_github('RoDivinity/mbreaksUPDATE')
+```
+
+This vignette is a short extension introducing the new addons for updated `mbreaks` package. All previous syntax and functions are maintained for users who are more familiar with function names written in GAUSS/MATLAB of the original codes. In this vignette, we introduce the class `sbm` which are more native to R syntax.
+
+
+## Symbolic expression for structural break model 
+The package `mbreaks` provides R users with minimum but comprehensive functions to analyze multiple structural changes in linear regression models in which the regressors and errors are non-trending. Users now can specify the structural break model using R formula. In details, structural break models for `sbm` class are specified symbolically similar to linear regression model specified in `lm`. A typical structural break model has the form `y ~ z | x` where response `y` is the (numeric) response vector and `x` and `z` terms is a series of terms which 
+are classified in two distinct types. `x` terms have unchanged coefficients across regimes and `z` terms have varied coefficients across regimes. A terms specification of the form `z1 + z2 | x1 + x2`  indicates all the terms in `z1` with all the terms in `z2` with duplicates removed have coefficients varied across regimes, whereas all terms in `x1` with all terms in `x2` with duplicates removed have coefficients fixed across regimes. If no `x` regressors are specified in the symbolic formula, the model is pure structural break model, whereas if any `x` regressors are specified, the model is partial structural break model. A formula has an implied intercept term that varies across regimes. 
+If intercept is explicitly removed by using `y ~ z - 1` or `y ~ z + 0` for pure structural model, or `y ~ z - 1 | x` for partial structural change model, then the formula has an implied intercept that fixes across regimes. To remove intercept from the model entirely, use `y ~ z - 1| x - 1`.
+
+```{r structural break model formula}
+#example models
+ex1 <- rate~1 #model 1: mean-shift in US real exchange rate (Perron and Garcia, 1996)
+ex2 <- inf~inflag+inffut+ygap
+
+```
+
+The class `sbm` is able to:
+- Test for the presence of structural changes via `suptests()` similar to original `dotest()` function and `seqtests()` similar to original `doseqtest()`.
+- Select the number of structural changes ($m^*$) by:
+  + sequential procedure:
+    * Determine the number of structural changes by using $\sup F_T(l+1|l)$ tests: `seqm()` similar to original `dosequa()` function
+    * Estimate one break at a time by using the repartition method: `repart()` similar to original `dorepart()` function
+  + information criterion via `ic()` similar to original `doorder()`:
+    * Bayesian Information Criterion (BIC) 
+    * Modified Schwarz Criterion (MSIC) 
+    * Kurozumi and Tuvaandorj (KT)
+
+If the number of structural changes is known (or specified), users can use `estimate()` similar to original `dofix()` function to estimate the model with the corresponding number of changes. 
+
+## Usage, arguments and examples
+
+### Empirical examples
+
+The vignette replicates 2 empirical exercises: i) US real interest rate and ii) New Keynesian Phillips curve similar to original vignette. 
+
+### US real interest rate
+
+@garcia1996analysis,@bai2003computation considered a mean shift model: 
+
+$$y_t = \mu_j + u_t, \quad\text{for } t = T_{j-1}+1,...,T_{j}\quad\text{and } j=1,...,m.$$ 
+
+
+
+### New Keynesian Phillips Curve
+
+@perron2015using investigates the stability of New Keynesian Phillips curve model proposed by @gali1999inflation via linear model:
+
+$$\pi_t = \mu + \gamma \pi_{t-1} + \kappa x_t + \beta E_t \pi_{t+1} + u_t$$
+
+where $\pi_t$ is inflation rate at time t, $E_t$ is an expectation operator conditional on information available up to $t$, and $x_t$ is a real determinant of inflation. In this example, we will reproduce specific results of the paper with ready-to-use dataset:
+
+```{r reproduce_table_PY}
+  model2 <- sbm(ex2,nkpc,prewhit = 0, eps1 = 0.1)
+  #see test results
+  supF.model2 <- suptests(nkpc.model)
+  seqF.model2 <- seqtests(nkpc.model)
+  supF.model2
+  seqF.model2
+  
+```
+
+To replicate the results, we turn off `prewhit` option.
+
+```{r model estimated given break selected by sequential tests, echo = FALSE}
+
+```
+
+
+# Reference
