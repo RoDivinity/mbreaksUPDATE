@@ -262,7 +262,7 @@ summary.sbm <- function(x, digits = 2, ... ){
   }
   
   if (!is.null(x$SQ)){
-    msel <- a$SQ$SQ 
+    msel <- x$SQ$SQ 
     cat(paste('\nNumber of breaks selected by sequential procedure:',msel,'\n'))
   }else{
     cat('No break selection via sequential procedure.')
